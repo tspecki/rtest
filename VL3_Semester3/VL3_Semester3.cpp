@@ -20,7 +20,7 @@ public:
 		, bild("Felix.png")
 		, bild1("Scope.png")
 	{
-		set_caption("Gaertnershooter");
+		set_caption("shoot Felix");
 	}
 
 	void update() override {
