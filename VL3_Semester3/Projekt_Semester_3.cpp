@@ -5,7 +5,7 @@
 #include <Gosu/Gosu.hpp>
 #include <Gosu/AutoLink.hpp>
 
-const int Fensterbreite = 1080;
+const int Fensterbreite = 1081;
 const int Fensterhöhe = 800;
 
 double mausx, mausy;
