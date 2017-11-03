@@ -8,23 +8,25 @@
 
 class GameWindow : public Gosu::Window {
 public:
-	Gosu::Image bild, bild2, pic_fire;
+	Gosu::Image bild, bild2, pic_fire, pic_shot;
 	GameWindow()
 		: Window(1500, 900)
 		, bild("sternenhimmel.png")
 		, bild2("rakete.png")
 		, pic_fire("fire.png")
+		, pic_shot("feuerball.png")
 	{
 		set_caption("Testspiel");
 	}
 
-	double x = 0.0;
+	double x = 0.0;			//Parameter für Hintergrund
 	double y = 400.0;
 
-	double rot_fire = 0.0;
+	double shot_x = 725.0;	//Parameter für Schuss
+	double shot_y = 610.0;
+	bool shot_anz = false;
 
-	double ref_x = 0.0;
-	double ref_y = 0.0;
+	double rot_fire = 0.0;	//Feuer der Rakete
 
 	double flames(double min, double max)
 	{
@@ -58,13 +60,19 @@ public:
 			bild.draw_rot(x1, y - 1000.0, 0.0, 0.0, 0.0, 0.0);
 		}
 	}
+	void shot()
+	{
+		if (shot_anz == true)
+		{
+			pic_shot.draw_rot(shot_x, shot_y, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1);
+		}
+	}
 
 	void update() override {
 
 		if (input().down(Gosu::KB_LEFT))
 		{
 			x = x + 2;
-			ref_x = ref_x - 1;
 		}
 		else if (input().down(Gosu::KB_RIGHT))
 		{
@@ -75,10 +83,25 @@ public:
 			y = y + 2;
 			rot_fire = flames(-9.0, 9.0);
 		}
+		if (input().down(Gosu::KB_SPACE))
+		{
+
+			if (shot_y >= 0)
+			{
+				shot_anz = true;
+				shot_y = shot_y - 8;
+			}
+			else
+			{
+				shot_anz = false;
+				shot_y = 610.0;
+			}
+		}
 	}
 	void draw() override {
 		background();
 		rocket();
+		shot();
 	}
 };
 int main()
