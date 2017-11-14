@@ -2,130 +2,164 @@
 
 #include <Gosu/Gosu.hpp>
 #include <Gosu/AutoLink.hpp>
-//using namespace std;
+
+#include <iostream>
 
 class Schuss
 {
-	double shot_x = 725.0;	//Parameter für Schuss
-	double shot_y = 610.0;
+  
+private:
+  double shot_x;
+  double shot_y;
 
 public:
-	void set_x(double x)
-	{
-		shot_x = x;
-	}
-	void set_y(double y)
-	{
-		shot_y = y;
-	}
-	double get_x()
-	{
-		return shot_x;
-	}
-	double get_y()
-	{
-		return shot_y;
-	}
+  void set_x(double x) 
+  {
+    shot_x = x;
+  }
+  
+  void set_y(double y)
+  {
+    shot_y = y;
+  }
+  
+  double get_x()
+  {
+    return shot_x;
+  }
+  
+  double get_y()
+  {
+    return shot_y;
+  }
 };
+
+  
+#define WIDTH 1900
+#define HEIGHT 900
 
 class GameWindow : public Gosu::Window {
+private:
+
+  //View Port position
+  signed int viw_x;		    
+  signed int viw_y;
+
+  //real view = virtual view ... so no second variables
+  const int viw_w = WIDTH;
+  const int viw_h = HEIGHT;
+
+  //Background size
+  int pic_b_w;
+  int pic_b_h;
+  
 public:
-	Gosu::Image pic_hintergrund, bild2, pic_fire, pic_shot;
-	GameWindow()
-		: Window(1500, 900)
-		, pic_hintergrund("media/sternenhimmel.png")
-		, bild2("media/rakete.png")
-		, pic_fire("media/fire.png")
-		, pic_shot("media/feuerball.png")
-	{
-		set_caption("Testspiel");
-	}
+  Gosu::Image pic_sternenhimmel;
 
-	double x = 0.0;			//Parameter für Hintergrund
-	double y = 400.0;
+  
+  GameWindow()
+    :  Window(WIDTH, HEIGHT), pic_sternenhimmel("media/sternenhimmel.png")
+  {
+    set_caption("RAR Shot");
 
-	bool shot_anz = false;
-	Schuss s;
+    //Get width and height for background calculation
+    pic_b_w = pic_sternenhimmel.width();
+    pic_b_h = pic_sternenhimmel.height();
 
-	double rot_fire = 0.0;	//Feuer der Rakete
+    viw_x = 0;
+    viw_y = 0;
+  }
 
-	double flames(double min, double max)
-	{
-		double f = (double)rand() / RAND_MAX;
-		return min + f*(max - min);
-	}
+  void draw() override {
+    //Draw the background (sternenhimmel) in the background :D
+    drawBackground(); //z = 0
+    
+    
+  }
 
-	void rocket()
-	{
-		bild2.draw_rot(600.0, 650.0, 1.0, 0.0, 0.0, 0.0);
+  //translate X to onScreen X Position
+  int onScX(int xPos)
+  {
+    return (xPos - viw_x);
+  }
 
-		if (input().down(Gosu::KB_UP))
-		{
-			pic_fire.draw_rot(753.0, 818.0, 0.0, rot_fire, 0.6, 0.0, 0.07, 0.2);
-		}
-	}
-	void background()
-	{
-		double x0 = x;
-		double y0 = y;
+  //translate Y to onScreen Y Position
+  int onScY(int yPos)
+  {
+    return -(yPos - viw_y);
+  }
 
-		while (x0 > 0)
-		{
-			x0 -= 500.0;
-		}
+  
+  void drawBackground() {
+    
+    signed int pic_x = 0;
+    signed int pic_y = 0;
 
-		for (double x1 = x0; x1 < graphics().width(); x1 += 500.0)
-		{
-			pic_hintergrund.draw_rot(x1, y, 0.0, 0.0, 0.0, 0.0);
-			pic_hintergrund.draw_rot(x1, y - 500.0, 0.0, 0.0, 0.0, 0.0);
-			pic_hintergrund.draw_rot(x1, y - 1000.0, 0.0, 0.0, 0.0, 0.0);
-		}
-	}
-	void shot(bool shot_anz)
-	{
-		if (shot_anz == true)
-		{
-			pic_shot.draw_rot(s.get_x(), s.get_y(), 0.0, 0.0, 0.0, 0.0, 0.1, 0.1);
-		}
-	}
+    if (viw_x < 0)
+      pic_x = ((viw_x / pic_b_w) - 1) * pic_b_w;
+    else
+      pic_x = (viw_x / pic_b_w) * pic_b_w;
 
-	void update() override {
+    if(viw_y > 0)
+      pic_y = ((viw_y / pic_b_h) + 1) * pic_b_h;
+    else
+      pic_y = (viw_y / pic_b_h) * pic_b_h;
 
-		if (input().down(Gosu::KB_LEFT))
-		{
-			x = x + 2;
-		}
-		else if (input().down(Gosu::KB_RIGHT))
-		{
-			x = x - 2;
-		}
-		if (input().down(Gosu::KB_UP))
-		{
-			y = y + 2;
-			rot_fire = flames(-9.0, 9.0);
-		}
- 		if (input().down(Gosu::KB_SPACE))
-		{
-			shot_anz = true;
-		}
-		if (shot_anz == true)
-		{
-			s.set_y(s.get_y() - 8);
-		}
-		if (s.get_y() <= 0)
-		{
-			shot_anz = false;
-			s.set_y(610.0);
-		}
-	}
-	void draw() override {
-		background();
-		rocket();
-		shot(shot_anz);
-	}
+    //draw vars
+    signed int pic_x_d = 0;
+    signed int pic_y_d = 0;
+    
+    pic_y_d = pic_y;
+
+    //render tiles
+    while(pic_y_d >  viw_y - viw_h)
+      {
+	pic_x_d = pic_x;
+	
+	while(pic_x_d <  viw_x + viw_w)
+	  {
+	
+	    std::cout << pic_x_d << std::endl;
+	    std::cout << pic_y_d << std::endl;
+    
+	    pic_sternenhimmel.draw(onScX(pic_x_d), onScY(pic_y_d), 0);
+
+	    pic_x_d += pic_b_w;
+	  }
+	pic_y_d -= pic_b_h;
+      }
+      
+  }
+  
+  void update() override {
+    //move up :D
+    viw_y += 2;
+    
+    if (input().down(Gosu::KB_LEFT))
+      {
+	viw_x -= 1;
+      }
+    
+    else if (input().down(Gosu::KB_RIGHT))
+      {
+	viw_x += 1;
+      }
+    
+    if (input().down(Gosu::KB_SPACE))
+      {
+	
+      }
+  }
+
+  
 };
-int main()
+
+
+
+
+int main(int argc, const char** argv)
 {
-	GameWindow window;
-	window.show();
+  GameWindow window;
+  window.show();
+  return 0;
 }
