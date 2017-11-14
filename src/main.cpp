@@ -1,6 +1,5 @@
 // Space Spiel
 
-#include "stdafx.h"
 #include <Gosu/Gosu.hpp>
 #include <Gosu/AutoLink.hpp>
 //using namespace std;
@@ -34,10 +33,10 @@ public:
 	Gosu::Image pic_hintergrund, bild2, pic_fire, pic_shot;
 	GameWindow()
 		: Window(1500, 900)
-		, pic_hintergrund("sternenhimmel.png")
-		, bild2("rakete.png")
-		, pic_fire("fire.png")
-		, pic_shot("feuerball.png")
+		, pic_hintergrund("media/sternenhimmel.png")
+		, bild2("media/rakete.png")
+		, pic_fire("media/fire.png")
+		, pic_shot("media/feuerball.png")
 	{
 		set_caption("Testspiel");
 	}
