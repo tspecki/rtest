@@ -1,4 +1,4 @@
-﻿# RAR Jump
+﻿# RAR Shot
 
 
 This is our first C++ Project for the lecture in XXX at the Baden-Wuerttemberg Cooperative State University (DHBW [which is realy great]).
