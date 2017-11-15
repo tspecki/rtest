@@ -12,6 +12,12 @@
 
 
 
+
+
+//################################################################################
+// Ojekt
+//################################################################################
+
 class Objekt
 {
 protected:
@@ -35,8 +41,10 @@ public:
   int getH();
 };
 
-  
 
+//################################################################################
+// Objekt Functions
+//################################################################################
 
 
 Objekt::Objekt()
@@ -64,12 +72,19 @@ int Objekt::getH()
 }
   
 
+
+//################################################################################
+// Ship
+//################################################################################
+
+
+
 class GameWindow;
 
 class Ship : public Objekt
 {
 private:
-  Gosu::Image pic_ship;
+  Gosu::Image &pic_ship;
     
   //screen Pointer
   GameWindow &scr;
@@ -77,7 +92,7 @@ private:
   int angle;
   
 public:
-  Ship(GameWindow &screen);
+  Ship(Gosu::Image &ship, GameWindow &screen);
 
   void tick();
 
@@ -88,6 +103,41 @@ public:
   void draw(); 
 };
 
+
+//################################################################################
+// Fireball
+//################################################################################
+
+
+class Fireball : public Objekt
+{
+private:
+  Gosu::Image &pic_fireball;
+    
+  //screen Pointer
+  GameWindow &scr;
+
+  int angle;
+
+  int c_x;
+  int c_y;
+  
+public:
+  Fireball(Gosu::Image &fireball, GameWindow &screen, int x, int y, int angle);
+
+  void tick();
+
+  void draw();
+
+  int getCX();
+  int getCY();
+};
+
+
+
+//################################################################################
+// GameWindow
+//################################################################################
 
 
 
@@ -108,6 +158,8 @@ private:
   int pic_b_h;
   
   Gosu::Image pic_sternenhimmel;
+  Gosu::Image pic_ship;
+  Gosu::Image pic_fireball;
 
   Ship player;
   
@@ -137,8 +189,11 @@ public:
   
 };
 
+//################################################################################
+// Ship Functions
+//################################################################################
 
-Ship::Ship(GameWindow &screen): pic_ship("media/ship.png"), scr(screen)
+Ship::Ship(Gosu::Image &ship, GameWindow &screen): pic_ship(ship), scr(screen)
 {
   // std::cout << "Ship created" << std::endl;
   x = 0;
@@ -164,16 +219,16 @@ void Ship::tick()
 void Ship::moveRight()
 {
   x += 5;
-  if (angle > -40)
-    angle -=3;
+  if (angle < 40)
+    angle +=3;
 }
 
   
 void Ship::moveLeft()
 {
   x -= 5;
-  if(angle < 40)
-    angle += 3;
+  if(angle > -40)
+    angle -= 3;
 }
   
 void Ship::draw()
@@ -181,12 +236,54 @@ void Ship::draw()
   pic_ship.draw_rot(scr.onScX(x), scr.onScY(y), 1, angle, 0.5, 0.5, 0.5, 0.5);
 }
  
+
+//################################################################################
+// Fireball Functions
+//################################################################################
+
+Fireball::Fireball(Gosu::Image &fireball, GameWindow &screen, int x, int y, int angle): pic_fireball(fireball), scr(screen), angle(angle)
+{
+  // std::cout << "Fireball created" << std::endl;
+
+  this->x = x;
+  this->y = y;
+  w = pic_fireball.width() / 2;
+  h = pic_fireball.height() / 2;
+}
+
   
+void Fireball::tick()
+{
+  //move in direction (angle) :)
+    
+}
+  
+void Fireball::draw()
+{
+  pic_fireball.draw_rot(scr.onScX(x), scr.onScY(y), 1, angle, 0.5, 0.5, 0.5, 0.5);
+}
+
+
+int Fireball::getCX()
+{
+  return x + (w/2.0);
+}
+
+int Fireball::getCY()
+{
+  return y + (h/2.0);
+}
+ 
+  
+//################################################################################
+// GameWindow Functions
+//################################################################################
 
 
   
 GameWindow::GameWindow()
-  : viw_h(HEIGHT), viw_w(WIDTH), Window(WIDTH, HEIGHT), pic_sternenhimmel("media/sternenhimmel.png"), player(*this)
+  : viw_h(HEIGHT), viw_w(WIDTH), Window(WIDTH, HEIGHT), pic_sternenhimmel("media/sternenhimmel.png"),
+    pic_ship("media/ship.png"), pic_fireball("media/fireball.png"), player(pic_ship, *this)
 {
   set_caption("RAR Shot");
 
@@ -306,6 +403,9 @@ void GameWindow::exploitKeys()
   
 
 
+//################################################################################
+// Main
+//################################################################################
 
 
 
