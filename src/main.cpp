@@ -4,12 +4,14 @@
 #include <Gosu/AutoLink.hpp>
 
 #include <iostream>
+#include <math.h>
 
   
 
 #define WIDTH 1900
 #define HEIGHT 900
 
+#define PI 3.14159265
 
 
 
@@ -51,7 +53,7 @@ Objekt::Objekt()
 {
   
 }
-
+ 
 int Objekt::getX() {
   return x;
 }
@@ -100,7 +102,9 @@ public:
   
   void moveLeft();
   
-  void draw(); 
+  void draw();
+
+  int getA();
 };
 
 
@@ -118,10 +122,16 @@ private:
   GameWindow &scr;
 
   int angle;
+  //move vektor
+  int v_x;
+  int v_y;
 
+  //center point
   int c_x;
   int c_y;
-  
+
+  //image scale
+  const double scale;
 public:
   Fireball(Gosu::Image &fireball, GameWindow &screen, int x, int y, int angle);
 
@@ -162,6 +172,8 @@ private:
   Gosu::Image pic_fireball;
 
   Ship player;
+
+  std::vector<Fireball*> rockets;
   
 public:
 
@@ -209,6 +221,8 @@ void Ship::tick()
 {
   //move up :)
   y += 2;
+
+  //rotate back
   if(angle > 0)
     angle -= 1;
   else if(angle < 0)
@@ -219,6 +233,7 @@ void Ship::tick()
 void Ship::moveRight()
 {
   x += 5;
+  //rotate right
   if (angle < 40)
     angle +=3;
 }
@@ -227,13 +242,20 @@ void Ship::moveRight()
 void Ship::moveLeft()
 {
   x -= 5;
+  //rotate left
   if(angle > -40)
     angle -= 3;
 }
   
 void Ship::draw()
 {
-  pic_ship.draw_rot(scr.onScX(x), scr.onScY(y), 1, angle, 0.5, 0.5, 0.5, 0.5);
+  //player in ebene 4
+  pic_ship.draw_rot(scr.onScX(x), scr.onScY(y), 4, angle, 0.5, 0.5, 0.5, 0.5);
+}
+ 
+int Ship::getA()
+{
+  return angle;
 }
  
 
@@ -241,37 +263,45 @@ void Ship::draw()
 // Fireball Functions
 //################################################################################
 
-Fireball::Fireball(Gosu::Image &fireball, GameWindow &screen, int x, int y, int angle): pic_fireball(fireball), scr(screen), angle(angle)
+Fireball::Fireball(Gosu::Image &fireball, GameWindow &screen, int x, int y, int angle): pic_fireball(fireball), scr(screen)
+										      , angle(angle), scale(0.20)
 {
-  // std::cout << "Fireball created" << std::endl;
+  //std::cout << "Fireball created" << std::endl;
 
   this->x = x;
   this->y = y;
+  
   w = pic_fireball.width() / 2;
   h = pic_fireball.height() / 2;
+
+  v_x = -std::cos((angle + 90) * PI / 180.0) * 10.0;
+  v_y = std::sin((angle + 90) * PI / 180.0) * 10.0;
 }
 
   
 void Fireball::tick()
 {
   //move in direction (angle) :)
-    
+  x += v_x;
+  y += v_y;
+  
 }
   
 void Fireball::draw()
 {
-  pic_fireball.draw_rot(scr.onScX(x), scr.onScY(y), 1, angle, 0.5, 0.5, 0.5, 0.5);
+  //fireballs in ebene 3
+  pic_fireball.draw_rot(scr.onScX(x), scr.onScY(y), 3, angle, 0.5, 0.5, scale, scale);
 }
 
 
 int Fireball::getCX()
 {
-  return x + (w/2.0);
+  return x + ((w/scale) / 2.0);
 }
 
 int Fireball::getCY()
 {
-  return y + (h/2.0);
+  return y + ((h/scale)/ 2.0);
 }
  
   
@@ -300,6 +330,11 @@ void GameWindow::draw() {
   //Draw the background (sternenhimmel) in the background :D
   drawBackground(); //z = 0
   player.draw();
+
+  //draw Fireballs
+  for(Fireball* ball : rockets) {
+    ball->draw();
+  }
     
 }
 
@@ -347,7 +382,8 @@ void GameWindow::drawBackground() {
 	{
 	
 	  //std::cout << pic_x_d << "," <<  pic_y_d << std::endl;
-    
+
+	  //hintegrund in ebene 0
 	  pic_sternenhimmel.draw(onScX(pic_x_d), onScY(pic_y_d), 0);
 
 	  pic_x_d += pic_b_w;
@@ -366,7 +402,12 @@ void GameWindow::update() {
 
   //Move movie 
   updateView();
-    
+
+  
+  //update Fireballs
+  for(Fireball* ball : rockets) {
+    ball->tick();
+  }
     
 }
 
@@ -397,7 +438,8 @@ void GameWindow::exploitKeys()
   if (input().down(Gosu::KB_SPACE))
     {
       //std::cout << "Fire!" << std::endl; 
-	
+      rockets.push_back(new Fireball(pic_fireball, *this, player.getX(), player.getY(), player.getA()));
+     
     }
 }
   
