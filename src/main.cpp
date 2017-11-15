@@ -141,6 +141,8 @@ public:
 
   int getCX();
   int getCY();
+
+  bool inField(int viw_x, int viw_y, int viw_w, int viw_h);
 };
 
 
@@ -174,6 +176,7 @@ private:
   Ship player;
 
   std::vector<Fireball*> rockets;
+  void deleteFireballs();
   
 public:
 
@@ -296,15 +299,27 @@ void Fireball::draw()
 
 int Fireball::getCX()
 {
-  return x + ((w/scale) / 2.0);
+  return x + ((w*scale) / 2.0);
 }
 
 int Fireball::getCY()
 {
-  return y + ((h/scale)/ 2.0);
+  return y + ((h*scale)/ 2.0);
 }
  
   
+bool Fireball::inField(int viw_x, int viw_y, int viw_w, int viw_h)
+{
+  if(getCX() >= viw_x && getCX() <= viw_x + viw_w)
+    {
+      if(getCY() <= viw_y && getCY() >= viw_y - viw_h)
+	 {
+	   return true;
+	 }
+    }
+  return false;
+}
+
 //################################################################################
 // GameWindow Functions
 //################################################################################
@@ -408,6 +423,9 @@ void GameWindow::update() {
   for(Fireball* ball : rockets) {
     ball->tick();
   }
+  deleteFireballs();
+
+  
     
 }
 
@@ -415,9 +433,24 @@ void GameWindow::updateView()
 {
   viw_x = (player.getX() + (player.getW()/2.0)) - (viw_w / 2.0);
   viw_y = (player.getY() - player.getH() - 20) + (viw_h);
-  
-     
 }
+
+
+
+void GameWindow::deleteFireballs()
+{
+  //remove fireball not in view
+  for(std::vector<Fireball*>::iterator it = rockets.begin(); it != rockets.end(); ++it) {
+    if(!(*it)->inField(viw_x, viw_y, viw_w, viw_h))
+    {
+      rockets.erase(it);
+      
+      std::cout << "Delete fireball" << std::endl;
+      it--;
+    }
+  }
+}
+
 
 void GameWindow::exploitKeys()
 {
