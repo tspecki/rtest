@@ -20,8 +20,6 @@ protected:
   
   int w;
   int h;
-
-  
   
 public:
   Objekt();
