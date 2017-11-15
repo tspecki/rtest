@@ -119,8 +119,7 @@ public:
 	while(pic_x_d <  viw_x + viw_w)
 	  {
 	
-	    std::cout << pic_x_d << std::endl;
-	    std::cout << pic_y_d << std::endl;
+	    std::cout << pic_x_d << "," <<  pic_y_d << std::endl;
     
 	    pic_sternenhimmel.draw(onScX(pic_x_d), onScY(pic_y_d), 0);
 
@@ -137,12 +136,12 @@ public:
     
     if (input().down(Gosu::KB_LEFT))
       {
-	viw_x -= 1;
+	viw_x -= 5;
       }
     
     else if (input().down(Gosu::KB_RIGHT))
       {
-	viw_x += 1;
+	viw_x += 5;
       }
     
     if (input().down(Gosu::KB_SPACE))
