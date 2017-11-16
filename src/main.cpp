@@ -146,6 +146,31 @@ public:
 };
 
 
+//################################################################################
+// Enemie
+//################################################################################
+
+
+class Enemie : public Objekt
+{
+private:
+  Gosu::Image &pic_enemie;
+    
+  //screen Pointer
+  GameWindow &scr;
+
+  //image scale
+  const double scale;
+public:
+  Enemie(Gosu::Image &enemie, GameWindow &screen, int x, int y);
+
+  void tick();
+
+  void draw();
+
+  bool collisionP(int p_x, int p_y);
+};
+
 
 //################################################################################
 // GameWindow
@@ -177,6 +202,8 @@ private:
 
   std::vector<Fireball*> rockets;
   void deleteFireballs();
+
+  int shotcount;
   
 public:
 
@@ -338,7 +365,7 @@ GameWindow::GameWindow()
 
   viw_x = 0;
   viw_y = 0;
-
+  shotcount = 0;
 }
 
 void GameWindow::draw() {
@@ -409,6 +436,8 @@ void GameWindow::drawBackground() {
 }
   
 void GameWindow::update() {
+  
+
   //User interaction
   exploitKeys();
 
@@ -424,7 +453,11 @@ void GameWindow::update() {
     ball->tick();
   }
   deleteFireballs();
-
+  //update shotCounter
+  if(shotcount > 0)
+  {
+      shotcount--;
+  }
   
     
 }
@@ -444,8 +477,7 @@ void GameWindow::deleteFireballs()
     if(!(*it)->inField(viw_x, viw_y, viw_w, viw_h))
     {
       rockets.erase(it);
-      
-      std::cout << "Delete fireball" << std::endl;
+      //std::cout << "Delete fireball" << std::endl;
       it--;
     }
   }
@@ -471,7 +503,12 @@ void GameWindow::exploitKeys()
   if (input().down(Gosu::KB_SPACE))
     {
       //std::cout << "Fire!" << std::endl; 
-      rockets.push_back(new Fireball(pic_fireball, *this, player.getX(), player.getY(), player.getA()));
+      if (shotcount == 0)
+	{
+	  
+	  rockets.push_back(new Fireball(pic_fireball, *this, player.getX(), player.getY(), player.getA()));
+	  shotcount = 16;
+	}
      
     }
 }
