@@ -448,7 +448,7 @@ Enemie::Enemie(Gosu::Image &enemie, Gosu::Font font, GameWindow &screen, int x, 
   this->y = y;
   
   
-  w = pic_enemie.width() * scale;
+  w = pic_enemie.width() * scale - 20;
   h = pic_enemie.height() * scale;
   
   lives = std::rand() % 5 + 1;
@@ -780,6 +780,17 @@ void GameWindow::exploitKeys()
 	}
      
     }
+  /*
+  if (input().down(Gosu::KB_ESC))
+    {
+      if(!running)
+	{
+	  //Reastart
+	  // running = true;
+	  
+	}
+    }
+  */
 }
   
 void GameWindow::collisionEnemies()
@@ -815,7 +826,7 @@ void GameWindow::collisionShip()
 {
    
     for(std::vector<Enemie*>::iterator en = enemies.begin(); en != enemies.end(); ++en) {
-      if((*en)->overlaps(player.getX() + 10, player.getY() - 10, player.getW() - 20, player.getH() - 20))
+      if((*en)->overlaps(player.getX(), player.getY() - 10, player.getW() - 20, player.getH() - 20))
 	{
 	  //Todo: Ship explode
 	  running = false;
