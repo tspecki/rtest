@@ -132,6 +132,7 @@ private:
 
   //image scale
   const double scale;
+
 public:
   Fireball(Gosu::Image &fireball, GameWindow &screen, int x, int y, int angle);
 
