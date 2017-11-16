@@ -7,6 +7,9 @@
 #include <math.h>
 #include <ctime>
   
+#include <sstream>
+#include <string>
+
 
 #define WIDTH 1900
 #define HEIGHT 900
@@ -196,9 +199,13 @@ private:
     
   //screen Pointer
   GameWindow &scr;
+  Gosu::Font font;
+
+  int lives;
+  std::string live;
 
 public:
-  Enemie(Gosu::Image &enemie, GameWindow &screen, int x, int y);
+  Enemie(Gosu::Image &enemie, Gosu::Font font, GameWindow &screen, int x, int y);
 
   void tick();
 
@@ -243,7 +250,7 @@ private:
   
   int shotcount;
 
-
+  Gosu::Font font;
   
 
   void draw() override;
@@ -377,7 +384,7 @@ void Fireball::draw()
 // Enemie Functions
 //################################################################################
 
-Enemie::Enemie(Gosu::Image &enemie, GameWindow &screen, int x, int y): pic_enemie(enemie), scr(screen)
+Enemie::Enemie(Gosu::Image &enemie, Gosu::Font font, GameWindow &screen, int x, int y): pic_enemie(enemie), scr(screen), font(font)
 {
   //std::cout << "Fireball created" << std::endl;
 
@@ -391,7 +398,17 @@ Enemie::Enemie(Gosu::Image &enemie, GameWindow &screen, int x, int y): pic_enemi
   
   w = pic_enemie.width() * scale;
   h = pic_enemie.height() * scale;
-
+  
+  lives = std::rand() % 5 + 1;
+  
+  std::stringstream ss;
+  for(int i = 0; i < lives; i++)
+    {
+      ss << "♥";
+    }
+  
+  live = ss.str();
+  
 }
 
   
@@ -403,6 +420,7 @@ void Enemie::tick()
 void Enemie::draw()
 {
   //enemie in ebene 2
+  font.draw(live, scr.onScX(x - (w/4.0)), scr.onScY(y + (h/2.0) + 20), 3);
   pic_enemie.draw_rot(scr.onScX(x), scr.onScY(y), 2, angle, 0.5, 0.5, scale, scale);
 }
 
@@ -418,7 +436,7 @@ void Enemie::draw()
   
 GameWindow::GameWindow()
   : viw_h(HEIGHT), viw_w(WIDTH), Window(WIDTH, HEIGHT), pic_sternenhimmel("media/sternenhimmel.png"),
-    pic_ship("media/ship.png"), pic_fireball("media/fireball.png"), pic_enemie("media/enemie.png"), player(pic_ship, *this)
+    pic_ship("media/ship.png"), pic_fireball("media/fireball.png"), pic_enemie("media/enemie.png"), player(pic_ship, *this), font(16)
 {
   set_caption("RAR Shot");
 
@@ -567,7 +585,7 @@ void GameWindow::generateEnemies()
       int randX = viw_x + (std::rand() % viw_w);
       int randY = viw_y + (std::rand() % 1000);
       
-       enemies.push_back(new Enemie(pic_enemie, *this, randX, randY));
+      enemies.push_back(new Enemie(pic_enemie, font, *this, randX, randY));
   
     }
  
