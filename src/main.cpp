@@ -712,11 +712,28 @@ void GameWindow::generateEnemies()
   //There should be allways 20 Enemies in space
   if (enemies.size() < 32)
     {
-      int randX = viw_x + (std::rand() % viw_w);
-      int randY = viw_y + (std::rand() % 1200);
+
+      Enemie* temp;
+      bool block = true;
       
-      enemies.push_back(new Enemie(pic_enemie, font, *this, randX, randY));
-  
+      while(block){
+	block = false;
+
+	int randX = viw_x + (std::rand() % viw_w);
+	int randY = viw_y + (std::rand() % 1500);
+      
+	temp = new Enemie(pic_enemie, font, *this, randX, randY);
+	for(std::vector<Enemie*>::iterator en = enemies.begin(); en != enemies.end(); ++en) {
+	  if(temp->overlaps((*en)->getX(), (*en)->getY(), (*en)->getW(),(*en)->getH()))
+	    {
+	      block = true;
+	      delete temp;
+	      break;
+	    }
+	}
+	
+      }
+      enemies.push_back(temp);
     }
  
 }
