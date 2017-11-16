@@ -109,9 +109,9 @@ bool Objekt::inField(int viw_x, int viw_y, int viw_w, int viw_h)
 
 bool Objekt::collisionP(int p_x, int p_y)
 {
-   if(p_x >= x && p_x  <= x + w)
+  if(p_x >= x - (w/2.0) && p_x  <= x + (w/2.0))
     {
-      if(p_y <= y && y  >= y - h)
+      if(p_y <= y + (h/2.0) && p_y  >= y - (h/2.0))
 	 {
 	   return true;
 	 }
@@ -272,6 +272,9 @@ private:
 
 
   void generateEnemies();
+
+  
+  void collisionEnemies();
   
 public:
 
@@ -357,7 +360,7 @@ Fireball::Fireball(Gosu::Image &fireball, GameWindow &screen, int x, int y, int 
   this->y = y;
   
   //shoud be const // but for animation purpose var
-  scale = 0.2;
+  scale = 0.1;
   this->angle = angle;
   
   w = pic_fireball.width() * scale;
@@ -395,7 +398,7 @@ Enemie::Enemie(Gosu::Image &enemie, Gosu::Font font, GameWindow &screen, int x, 
   //std::cout << "Fireball created" << std::endl;
 
   //shoud be const // but for animation purpose var
-  scale = 0.2;
+  scale = 0.15;
   angle = 0;
   
   this->x = x;
@@ -601,6 +604,11 @@ void GameWindow::update() {
   }
   generateEnemies();
   deleteEnemies();
+
+
+  //check collisions
+  collisionEnemies();
+  
   
     
 }
@@ -616,7 +624,7 @@ void GameWindow::updateView()
 
 void GameWindow::deleteEnemies()
 {
-  //remove fireball not in view
+  //remove Enemies not in view
   for(std::vector<Enemie*>::iterator it = enemies.begin(); it != enemies.end(); ++it) {
     if(!(*it)->overLine(viw_y - viw_h))
     {
@@ -643,10 +651,10 @@ void GameWindow::deleteEnemies()
 void GameWindow::generateEnemies()
 {
   //There should be allways 20 Enemies in space
-  if (enemies.size() < 20)
+  if (enemies.size() < 32)
     {
       int randX = viw_x + (std::rand() % viw_w);
-      int randY = viw_y + (std::rand() % 1000);
+      int randY = viw_y + (std::rand() % 1200);
       
       enemies.push_back(new Enemie(pic_enemie, font, *this, randX, randY));
   
@@ -698,7 +706,36 @@ void GameWindow::exploitKeys()
     }
 }
   
+void GameWindow::collisionEnemies()
+{
+ for(std::vector<Fireball*>::iterator it = rockets.begin(); it != rockets.end(); ++it) {
+    
+   bool hit = false;
+   
+    for(std::vector<Enemie*>::iterator en = enemies.begin(); en != enemies.end(); ++en) {
+      if((*en)->collisionP((*it)->getX(), (*it)->getY()))
+	{
+	  hit = true;
+	  (*en)->hit();
+	  //std::cout << "Delete enemie" << std::endl;
+	  break;
+	}
+    }
+    
+    if(hit)
+      {
+	  delete (*it);  //Speicher freigeben
+	  rockets.erase(it);
+	  //std::cout << "Delete fireball" << std::endl;
+	  it--;
+      }
+    
+  }
+ 
+ 
+}
 
+  
 
 //################################################################################
 // Main
