@@ -28,6 +28,9 @@ protected:
   
   int w;
   int h;
+
+  double scale;
+  int angle;
   
 public:
   Objekt();
@@ -41,6 +44,8 @@ public:
   int getW();
 
   int getH();
+
+  int getA();
 };
 
 
@@ -73,6 +78,10 @@ int Objekt::getH()
   return h;
 }
   
+int Objekt::getA()
+{
+  return angle;
+}
 
 
 //################################################################################
@@ -91,7 +100,6 @@ private:
   //screen Pointer
   GameWindow &scr;
 
-  int angle;
   
 public:
   Ship(Gosu::Image &ship, GameWindow &screen);
@@ -103,8 +111,6 @@ public:
   void moveLeft();
   
   void draw();
-
-  int getA();
 };
 
 
@@ -121,17 +127,10 @@ private:
   //screen Pointer
   GameWindow &scr;
 
-  int angle;
   //move vektor
   int v_x;
   int v_y;
 
-  //center point
-  int c_x;
-  int c_y;
-
-  //image scale
-  const double scale;
 
 public:
   Fireball(Gosu::Image &fireball, GameWindow &screen, int x, int y, int angle);
@@ -140,8 +139,6 @@ public:
 
   void draw();
 
-  int getCX();
-  int getCY();
 
   bool inField(int viw_x, int viw_y, int viw_w, int viw_h);
 };
@@ -160,8 +157,6 @@ private:
   //screen Pointer
   GameWindow &scr;
 
-  //image scale
-  const double scale;
 public:
   Enemie(Gosu::Image &enemie, GameWindow &screen, int x, int y);
 
@@ -241,10 +236,14 @@ Ship::Ship(Gosu::Image &ship, GameWindow &screen): pic_ship(ship), scr(screen)
   // std::cout << "Ship created" << std::endl;
   x = 0;
   y = 0;
+
+  //shoud be const // but for animation purpose var
+  scale = 0.5;
+  
   angle = 0;
 
-  w = pic_ship.width() / 2;
-  h = pic_ship.height() / 2;
+  w = pic_ship.width() * scale;
+  h = pic_ship.height() * scale;
 }
 
   
@@ -281,13 +280,9 @@ void Ship::moveLeft()
 void Ship::draw()
 {
   //player in ebene 4
-  pic_ship.draw_rot(scr.onScX(x), scr.onScY(y), 4, angle, 0.5, 0.5, 0.5, 0.5);
+  pic_ship.draw_rot(scr.onScX(x), scr.onScY(y), 4, angle, 0.5, 0.5, scale, scale);
 }
  
-int Ship::getA()
-{
-  return angle;
-}
  
 
 //################################################################################
@@ -295,15 +290,18 @@ int Ship::getA()
 //################################################################################
 
 Fireball::Fireball(Gosu::Image &fireball, GameWindow &screen, int x, int y, int angle): pic_fireball(fireball), scr(screen)
-										      , angle(angle), scale(0.20)
 {
   //std::cout << "Fireball created" << std::endl;
 
   this->x = x;
   this->y = y;
   
-  w = pic_fireball.width() / 2;
-  h = pic_fireball.height() / 2;
+  //shoud be const // but for animation purpose var
+  scale = 0.2;
+  this->angle = angle;
+  
+  w = pic_fireball.width() * scale;
+  h = pic_fireball.height() * scale;
 
   v_x = -std::cos((angle + 90) * PI / 180.0) * 10.0;
   v_y = std::sin((angle + 90) * PI / 180.0) * 10.0;
@@ -325,28 +323,66 @@ void Fireball::draw()
 }
 
 
-int Fireball::getCX()
-{
-  return x + ((w*scale) / 2.0);
-}
-
-int Fireball::getCY()
-{
-  return y + ((h*scale)/ 2.0);
-}
- 
   
 bool Fireball::inField(int viw_x, int viw_y, int viw_w, int viw_h)
 {
-  if(getCX() >= viw_x && getCX() <= viw_x + viw_w)
+  if(x + (w /2.0) >= viw_x && x - (w /2.0) <= viw_x + viw_w)
     {
-      if(getCY() <= viw_y && getCY() >= viw_y - viw_h)
+      if(y - (h /2.0) <= viw_y && y + (h /2.0) >= viw_y - viw_h)
 	 {
 	   return true;
 	 }
     }
   return false;
 }
+
+
+
+//################################################################################
+// Enemie Functions
+//################################################################################
+
+Enemie::Enemie(Gosu::Image &enemie, GameWindow &screen, int x, int y): pic_enemie(enemie), scr(screen)
+{
+  //std::cout << "Fireball created" << std::endl;
+
+  //shoud be const // but for animation purpose var
+  scale = 0.2;
+  angle = 0;
+  
+  this->x = x;
+  this->y = y;
+  
+  
+  w = pic_enemie.width() * scale;
+  h = pic_enemie.height() * scale;
+
+}
+
+  
+void Enemie::tick()
+{
+  //do enemie animation
+}
+  
+void Enemie::draw()
+{
+  //enemie in ebene 2
+  pic_enemie.draw_rot(scr.onScX(x), scr.onScY(y), 2, angle, 0.5, 0.5, scale, scale);
+}
+
+bool Enemie::collisionP(int p_x, int p_y)
+{
+   if(p_x >= x && p_x  <= x + w)
+    {
+      if(p_y <= y && y  >= y - h)
+	 {
+	   return true;
+	 }
+    }
+  return false;
+}
+
 
 //################################################################################
 // GameWindow Functions
@@ -465,8 +501,8 @@ void GameWindow::update() {
 
 void GameWindow::updateView()
 {
-  viw_x = (player.getX() + (player.getW()/2.0)) - (viw_w / 2.0);
-  viw_y = (player.getY() - player.getH() - 20) + (viw_h);
+  viw_x = (player.getX()) - (viw_w / 2.0);
+  viw_y = (player.getY() - (player.getH() / 2.0)) + (viw_h);
 }
 
 
