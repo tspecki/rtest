@@ -211,6 +211,9 @@ public:
 
   void draw();
 
+  void hit();
+
+  bool isDead();
   
 };
 
@@ -252,11 +255,14 @@ private:
 
   Gosu::Font font;
   
+  
+  std::string heightStr;
 
   void draw() override;
   void update() override;
   
   void drawBackground();
+  void drawHeight();
   void updateView();
   
   void exploitKeys();
@@ -304,7 +310,7 @@ Ship::Ship(Gosu::Image &ship, GameWindow &screen): pic_ship(ship), scr(screen)
 void Ship::tick()
 {
   //move up :)
-  y += 2;
+  y += 5;
 
   //rotate back
   if(angle > 0)
@@ -316,7 +322,7 @@ void Ship::tick()
 
 void Ship::moveRight()
 {
-  x += 5;
+  x += 3;
   //rotate right
   if (angle < 40)
     angle +=3;
@@ -325,7 +331,7 @@ void Ship::moveRight()
   
 void Ship::moveLeft()
 {
-  x -= 5;
+  x -= 3;
   //rotate left
   if(angle > -40)
     angle -= 3;
@@ -411,6 +417,7 @@ Enemie::Enemie(Gosu::Image &enemie, Gosu::Font font, GameWindow &screen, int x, 
   
 }
 
+
   
 void Enemie::tick()
 {
@@ -424,6 +431,29 @@ void Enemie::draw()
   pic_enemie.draw_rot(scr.onScX(x), scr.onScY(y), 2, angle, 0.5, 0.5, scale, scale);
 }
 
+
+
+void Enemie::hit()
+{
+  if(lives>0)
+    {
+      lives--;
+      std::stringstream ss;
+      for(int i = 0; i < lives; i++)
+	{
+	  ss << "♥";
+	}
+  
+      live = ss.str();
+      
+    }
+}
+
+
+bool Enemie::isDead()
+{
+  return lives == 0;
+}
 
 
 
@@ -447,11 +477,19 @@ GameWindow::GameWindow()
   viw_x = 0;
   viw_y = 0;
   shotcount = 0;
+
+
+   
+ 
+  
+  heightStr = "";
+  
 }
 
 void GameWindow::draw() {
   //Draw the background (sternenhimmel) in the background :D
   drawBackground(); //z = 0
+  drawHeight(); //z = 10
   player.draw();
 
   //draw Fireballs
@@ -464,7 +502,9 @@ void GameWindow::draw() {
   for(Enemie* eny : enemies) {
     eny->draw();
   }
-    
+
+
+  
 }
 
 //translate X to onScreen X Position
@@ -521,6 +561,14 @@ void GameWindow::drawBackground() {
     }
       
 }
+
+
+void GameWindow::drawHeight() {
+  
+  
+  font.draw(heightStr, 20, 20, 10);
+}
+
   
 void GameWindow::update() {
   
@@ -561,6 +609,9 @@ void GameWindow::updateView()
 {
   viw_x = (player.getX()) - (viw_w / 2.0);
   viw_y = (player.getY() - (player.getH() / 2.0)) + (viw_h);
+
+   
+  heightStr = "Entfernung: " + std::to_string(player.getY()) + "m";
 }
 
 void GameWindow::deleteEnemies()
@@ -569,6 +620,18 @@ void GameWindow::deleteEnemies()
   for(std::vector<Enemie*>::iterator it = enemies.begin(); it != enemies.end(); ++it) {
     if(!(*it)->overLine(viw_y - viw_h))
     {
+      delete (*it);  //Spiecher freigeben
+      enemies.erase(it);
+      //std::cout << "Delete enemie" << std::endl;
+      it--;
+      continue;
+    }
+
+    if((*it)->isDead())
+    {
+      //TODO: Enemie explode
+      //TODO: Count dead enemies --- for fun reason
+      delete (*it);  //Speiehcer freigeben
       enemies.erase(it);
       //std::cout << "Delete enemie" << std::endl;
       it--;
@@ -597,6 +660,7 @@ void GameWindow::deleteFireballs()
   for(std::vector<Fireball*>::iterator it = rockets.begin(); it != rockets.end(); ++it) {
     if(!(*it)->inField(viw_x, viw_y, viw_w, viw_h))
     {
+      delete (*it);  //Speicher freigeben
       rockets.erase(it);
       //std::cout << "Delete fireball" << std::endl;
       it--;
