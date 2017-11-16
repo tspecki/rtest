@@ -254,6 +254,8 @@ private:
   int shotcount;
 
   Gosu::Font font;
+  Gosu::Font fontBig;
+  Gosu::Font fontBiger;
   
   
   std::string heightStr;
@@ -469,7 +471,7 @@ bool Enemie::isDead()
   
 GameWindow::GameWindow()
   : viw_h(HEIGHT), viw_w(WIDTH), Window(WIDTH, HEIGHT), pic_sternenhimmel("media/sternenhimmel.png"),
-    pic_ship("media/ship.png"), pic_fireball("media/fireball.png"), pic_enemie("media/enemie.png"), player(pic_ship, *this), font(16)
+    pic_ship("media/ship.png"), pic_fireball("media/fireball.png"), pic_enemie("media/enemie.png"), player(pic_ship, *this), font(16), fontBig(24), fontBiger(60)
 {
   set_caption("RAR Shot");
 
@@ -569,7 +571,7 @@ void GameWindow::drawBackground() {
 void GameWindow::drawHeight() {
   
   
-  font.draw(heightStr, 20, 20, 10);
+  fontBig.draw(heightStr, 20, 20, 10);
 }
 
   
