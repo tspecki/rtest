@@ -56,6 +56,8 @@ public:
 
   
   bool overLine(int l_y);
+
+  bool overlaps(int b_x, int b_y, int b_w, int b_h);
 };
 
 
@@ -94,6 +96,8 @@ int Objekt::getA()
 }
 
 
+
+//this viw_x and viw_y  are in the upper left corner, not in the center
 bool Objekt::inField(int viw_x, int viw_y, int viw_w, int viw_h)
 {
   if(x + (w /2.0) >= viw_x && x - (w /2.0) <= viw_x + viw_w)
@@ -128,6 +132,36 @@ bool Objekt::overLine(int l_y)
   return false;
 }
 
+
+bool Objekt::overlaps(int b_x, int b_y, int b_w, int b_h)
+{
+  int b_l = b_x - (b_w / 2.0);
+  int b_r = b_x + (b_w / 2.0);
+  int b_t = b_y + (b_h / 2.0);
+  int b_b = b_y - (b_h / 2.0);
+  
+  
+  int l = x - (w / 2.0);
+  int r = x + (w / 2.0);
+  int t = y + (h / 2.0);
+  int b = y - (h / 2.0);
+
+
+  
+  
+  if(r > b_l && b < b_t && r <= b_r && b >= b_b)
+    return true;
+  if(l < b_r && b < b_t && l >= b_l && b >= b_b)
+    return true;
+  if(r > b_l && t > b_b && r < b_r && t <= b_t)
+    return true;
+  if(l < b_r && t > b_b && l >= b_l && t <= b_t)
+    return true;
+
+  return false;
+  
+}
+
   
 //################################################################################
 // Ship
@@ -156,6 +190,7 @@ public:
   void moveLeft();
   
   void draw();
+
 };
 
 
@@ -260,6 +295,8 @@ private:
   
   std::string heightStr;
 
+  bool running;
+  
   void draw() override;
   void update() override;
   
@@ -277,6 +314,9 @@ private:
 
   
   void collisionEnemies();
+  void collisionShip();
+
+  void drawDeadScreen();
   
 public:
 
@@ -314,15 +354,15 @@ Ship::Ship(Gosu::Image &ship, GameWindow &screen): pic_ship(ship), scr(screen)
   
 void Ship::tick()
 {
-  //move up :)
-  y += 5;
+      //move up :)
+      y += 5;
 
-  //rotate back
-  if(angle > 0)
-    angle -= 1;
-  else if(angle < 0)
-    angle += 1;
-    
+      //rotate back
+      if(angle > 0)
+	angle -= 1;
+      else if(angle < 0)
+	angle += 1;
+
 }
 
 void Ship::moveRight()
@@ -347,6 +387,7 @@ void Ship::draw()
   //player in ebene 4
   pic_ship.draw_rot(scr.onScX(x), scr.onScY(y), 4, angle, 0.5, 0.5, scale, scale);
 }
+ 
  
  
 
@@ -483,7 +524,7 @@ GameWindow::GameWindow()
   viw_y = 0;
   shotcount = 0;
 
-
+  running = true;
    
  
   
@@ -509,8 +550,23 @@ void GameWindow::draw() {
   }
 
 
+  if(!running)
+    {
+      drawDeadScreen();
+    }
+  
+
   
 }
+
+
+  
+void GameWindow::drawDeadScreen() {
+  //std::string
+
+  fontBiger.draw("Game Over - Du hast eine Entfernung von " + std::to_string(player.getY()) + "m geschafft", 150, viw_h / 2.0, 12);
+}
+
 
 //translate X to onScreen X Position
 int GameWindow::onScX(int xPos)
@@ -577,42 +633,43 @@ void GameWindow::drawHeight() {
   
 void GameWindow::update() {
   
+  if(running)
+    {
+      //User interaction
+      exploitKeys();
 
-  //User interaction
-  exploitKeys();
+      //ship events
+      player.tick();
 
-  //ship events
-  player.tick();
-
-  //Move movie 
-  updateView();
+      //Move movie 
+      updateView();
 
   
-  //update Fireballs
-  for(Fireball* ball : rockets) {
-    ball->tick();
-  }
-  deleteFireballs();
-  //update shotCounter
-  if(shotcount > 0)
-  {
-      shotcount--;
-  }
+      //update Fireballs
+      for(Fireball* ball : rockets) {
+	ball->tick();
+      }
+      deleteFireballs();
+      //update shotCounter
+      if(shotcount > 0)
+	{
+	  shotcount--;
+	}
 
 
-  //update Enemie
-  for(Enemie* eny : enemies) {
-    eny->tick();
-  }
-  generateEnemies();
-  deleteEnemies();
+      //update Enemie
+      for(Enemie* eny : enemies) {
+	eny->tick();
+      }
+      generateEnemies();
+      deleteEnemies();
 
 
-  //check collisions
-  collisionEnemies();
+      //check collisions
+      collisionEnemies();
+      collisionShip();
   
-  
-    
+    }
 }
 
 void GameWindow::updateView()
@@ -733,6 +790,21 @@ void GameWindow::collisionEnemies()
       }
     
   }
+ 
+ 
+}
+
+void GameWindow::collisionShip()
+{
+   
+    for(std::vector<Enemie*>::iterator en = enemies.begin(); en != enemies.end(); ++en) {
+      if((*en)->overlaps(player.getX(), player.getY(), player.getW(), player.getH()))
+	{
+	  //Todo: Ship explode
+	  running = false;
+	  break;
+	}
+    }
  
  
 }
