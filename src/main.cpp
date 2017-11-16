@@ -5,7 +5,7 @@
 
 #include <iostream>
 #include <math.h>
-
+#include <ctime>
   
 
 #define WIDTH 1900
@@ -46,6 +46,13 @@ public:
   int getH();
 
   int getA();
+
+  bool inField(int viw_x, int viw_y, int viw_w, int viw_h);
+
+  bool collisionP(int p_x, int p_y);
+
+  
+  bool overLine(int l_y);
 };
 
 
@@ -84,6 +91,41 @@ int Objekt::getA()
 }
 
 
+bool Objekt::inField(int viw_x, int viw_y, int viw_w, int viw_h)
+{
+  if(x + (w /2.0) >= viw_x && x - (w /2.0) <= viw_x + viw_w)
+    {
+      if(y - (h /2.0) <= viw_y && y + (h /2.0) >= viw_y - viw_h)
+	 {
+	   return true;
+	 }
+    }
+  return false;
+}
+
+
+bool Objekt::collisionP(int p_x, int p_y)
+{
+   if(p_x >= x && p_x  <= x + w)
+    {
+      if(p_y <= y && y  >= y - h)
+	 {
+	   return true;
+	 }
+    }
+  return false;
+}
+
+bool Objekt::overLine(int l_y)
+{
+  if(y + (h/2.0) >= l_y)
+  {
+    return true;
+  }
+  return false;
+}
+
+  
 //################################################################################
 // Ship
 //################################################################################
@@ -139,8 +181,6 @@ public:
 
   void draw();
 
-
-  bool inField(int viw_x, int viw_y, int viw_w, int viw_h);
 };
 
 
@@ -164,7 +204,7 @@ public:
 
   void draw();
 
-  bool collisionP(int p_x, int p_y);
+  
 };
 
 
@@ -193,20 +233,36 @@ private:
   Gosu::Image pic_sternenhimmel;
   Gosu::Image pic_ship;
   Gosu::Image pic_fireball;
+  Gosu::Image pic_enemie;
 
   Ship player;
 
   std::vector<Fireball*> rockets;
-  void deleteFireballs();
 
+  std::vector<Enemie*> enemies;
+  
   int shotcount;
+
+
+  
+
+  void draw() override;
+  void update() override;
+  
+  void drawBackground();
+  void updateView();
+  
+  void exploitKeys();
+  
+  void deleteFireballs();
+  void deleteEnemies();
+
+
+  void generateEnemies();
   
 public:
 
-  
   GameWindow();
-
-  void draw() override;
 
   //translate X to onScreen X Position
   int onScX(int xPos);
@@ -215,15 +271,6 @@ public:
   int onScY(int yPos);
 
   
-  void drawBackground();
-
-  
-  void update() override;
-  
-
-  void updateView();
-  
-  void exploitKeys();
   
 };
 
@@ -324,18 +371,6 @@ void Fireball::draw()
 
 
   
-bool Fireball::inField(int viw_x, int viw_y, int viw_w, int viw_h)
-{
-  if(x + (w /2.0) >= viw_x && x - (w /2.0) <= viw_x + viw_w)
-    {
-      if(y - (h /2.0) <= viw_y && y + (h /2.0) >= viw_y - viw_h)
-	 {
-	   return true;
-	 }
-    }
-  return false;
-}
-
 
 
 //################################################################################
@@ -371,17 +406,8 @@ void Enemie::draw()
   pic_enemie.draw_rot(scr.onScX(x), scr.onScY(y), 2, angle, 0.5, 0.5, scale, scale);
 }
 
-bool Enemie::collisionP(int p_x, int p_y)
-{
-   if(p_x >= x && p_x  <= x + w)
-    {
-      if(p_y <= y && y  >= y - h)
-	 {
-	   return true;
-	 }
-    }
-  return false;
-}
+
+
 
 
 //################################################################################
@@ -392,7 +418,7 @@ bool Enemie::collisionP(int p_x, int p_y)
   
 GameWindow::GameWindow()
   : viw_h(HEIGHT), viw_w(WIDTH), Window(WIDTH, HEIGHT), pic_sternenhimmel("media/sternenhimmel.png"),
-    pic_ship("media/ship.png"), pic_fireball("media/fireball.png"), player(pic_ship, *this)
+    pic_ship("media/ship.png"), pic_fireball("media/fireball.png"), pic_enemie("media/enemie.png"), player(pic_ship, *this)
 {
   set_caption("RAR Shot");
 
@@ -413,6 +439,12 @@ void GameWindow::draw() {
   //draw Fireballs
   for(Fireball* ball : rockets) {
     ball->draw();
+  }
+
+  
+  //draw Enemies
+  for(Enemie* eny : enemies) {
+    eny->draw();
   }
     
 }
@@ -495,6 +527,14 @@ void GameWindow::update() {
   {
       shotcount--;
   }
+
+
+  //update Enemie
+  for(Enemie* eny : enemies) {
+    eny->tick();
+  }
+  generateEnemies();
+  deleteEnemies();
   
     
 }
@@ -505,7 +545,33 @@ void GameWindow::updateView()
   viw_y = (player.getY() - (player.getH() / 2.0)) + (viw_h);
 }
 
+void GameWindow::deleteEnemies()
+{
+  //remove fireball not in view
+  for(std::vector<Enemie*>::iterator it = enemies.begin(); it != enemies.end(); ++it) {
+    if(!(*it)->overLine(viw_y - viw_h))
+    {
+      enemies.erase(it);
+      //std::cout << "Delete enemie" << std::endl;
+      it--;
+    }
+  }
+}
 
+
+void GameWindow::generateEnemies()
+{
+  //There should be allways 20 Enemies in space
+  if (enemies.size() < 20)
+    {
+      int randX = viw_x + (std::rand() % viw_w);
+      int randY = viw_y + (std::rand() % 1000);
+      
+       enemies.push_back(new Enemie(pic_enemie, *this, randX, randY));
+  
+    }
+ 
+}
 
 void GameWindow::deleteFireballs()
 {
@@ -561,6 +627,7 @@ void GameWindow::exploitKeys()
 
 int main(int argc, const char** argv)
 {
+  std::srand(std::time(0));
   GameWindow window;
   window.show();
   return 0;
