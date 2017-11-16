@@ -815,7 +815,7 @@ void GameWindow::collisionShip()
 {
    
     for(std::vector<Enemie*>::iterator en = enemies.begin(); en != enemies.end(); ++en) {
-      if((*en)->overlaps(player.getX(), player.getY(), player.getW(), player.getH()))
+      if((*en)->overlaps(player.getX() + 10, player.getY() - 10, player.getW() - 20, player.getH() - 20))
 	{
 	  //Todo: Ship explode
 	  running = false;
