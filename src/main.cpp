@@ -44,6 +44,11 @@ public:
   
   int getY();
 
+  
+  void setX(int x);
+  
+  void setY(int y);
+
   int getW();
 
   int getH();
@@ -78,6 +83,16 @@ int Objekt::getX() {
 int Objekt::getY()
 {
   return y;
+}
+
+
+void Objekt::setX(int x) {
+  this->x = x;
+}
+  
+void Objekt::setY(int y)
+{
+  this->y = y;
 }
 
 int Objekt::getW()
@@ -317,6 +332,8 @@ private:
   void collisionShip();
 
   void drawDeadScreen();
+  
+  void restart();
   
 public:
 
@@ -632,11 +649,13 @@ void GameWindow::drawHeight() {
 
   
 void GameWindow::update() {
+
   
+  //User interaction
+  exploitKeys();
+      
   if(running)
     {
-      //User interaction
-      exploitKeys();
 
       //ship events
       player.tick();
@@ -755,43 +774,51 @@ void GameWindow::deleteFireballs()
 
 void GameWindow::exploitKeys()
 {
-    
-  if (input().down(Gosu::KB_LEFT))
+  if(running)
     {
-      player.moveLeft();
-      //std::cout << "Move left" << std::endl;
+        
+      if (input().down(Gosu::KB_LEFT))
+	{
+	  player.moveLeft();
+	  //std::cout << "Move left" << std::endl;
 	
-    }
-    
-  else if (input().down(Gosu::KB_RIGHT))
-    {
-      player.moveRight();
-      //std::cout << "Move right" << std::endl;
-    }
-    
-  if (input().down(Gosu::KB_SPACE))
-    {
-      //std::cout << "Fire!" << std::endl; 
-      if (shotcount == 0)
-	{
-	  
-	  rockets.push_back(new Fireball(pic_fireball, *this, player.getX(), player.getY(), player.getA()));
-	  shotcount = 16;
 	}
+    
+      else if (input().down(Gosu::KB_RIGHT))
+	{
+	  player.moveRight();
+	  //std::cout << "Move right" << std::endl;
+	}
+    
+      if (input().down(Gosu::KB_SPACE))
+	{
+	  //std::cout << "Fire!" << std::endl; 
+	  if (shotcount == 0)
+	    {
+	  
+	      rockets.push_back(new Fireball(pic_fireball, *this, player.getX(), player.getY(), player.getA()));
+	      shotcount = 16;
+	    }
      
-    }
-  /*
-  if (input().down(Gosu::KB_ESC))
-    {
-      if(!running)
-	{
-	  //Reastart
-	  // running = true;
-	  
 	}
     }
-  */
+  else{
+    
+
+    //ESC to restart
+    if (input().down(Gosu::KB_ESCAPE))
+      {
+	//Reastart
+	restart();
+      }
+  }
+  
+
+  
 }
+
+
+
   
 void GameWindow::collisionEnemies()
 {
@@ -837,6 +864,41 @@ void GameWindow::collisionShip()
  
 }
 
+
+
+void GameWindow::restart()
+{
+  //std::cout << "Restart" << std::endl;
+  
+  //Delete all enemies
+  for(std::vector<Enemie*>::iterator en = enemies.begin(); en != enemies.end(); ++en) {
+    delete (*en);
+  }
+  enemies.clear();
+
+  
+  //Delete all firevalls
+  for(std::vector<Fireball*>::iterator it = rockets.begin(); it != rockets.end(); ++it) {
+    delete (*it);
+  }
+  rockets.clear();
+
+  
+
+    
+
+
+  player.setX(0);
+  player.setY(0);
+  
+  shotcount = 0;
+
+  running = true;
+   
+  
+  heightStr = "";
+ 
+}
   
 
 //################################################################################
