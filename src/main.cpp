@@ -254,6 +254,13 @@ private:
   int lives;
   std::string live;
 
+  int speed;
+  
+  int max;
+  int min;
+  int animation; //0 = X move;; 1 = Y move
+  int animationState;
+
 public:
   Enemie(Gosu::Image &enemie, Gosu::Font font, GameWindow &screen, int x, int y);
 
@@ -302,6 +309,7 @@ private:
   std::vector<Enemie*> enemies;
   
   int shotcount;
+  int deadcount;
 
   Gosu::Font font;
   Gosu::Font fontBig;
@@ -309,6 +317,7 @@ private:
   
   
   std::string heightStr;
+  std::string deadStr;
 
   bool running;
   
@@ -477,6 +486,28 @@ Enemie::Enemie(Gosu::Image &enemie, Gosu::Font font, GameWindow &screen, int x, 
     }
   
   live = ss.str();
+
+
+
+  //Animation stuff
+  //chose animation type
+  animation =  std::rand() % 2;
+  animationState = 0;
+  speed =  std::rand() % 4 + 1;
+  
+  if(animation == 0)
+    {
+      max = x + std::rand() % 300;
+
+      min = x - std::rand() % 300;
+    }
+  else if(animation == 1)
+    {
+      max = y + std::rand() % 300;
+
+      min = y - std::rand() % 300;
+      
+    }
   
 }
 
@@ -485,6 +516,63 @@ Enemie::Enemie(Gosu::Image &enemie, Gosu::Font font, GameWindow &screen, int x, 
 void Enemie::tick()
 {
   //do enemie animation
+  if(animation == 0)
+    {
+      //move right
+      if(animationState == 0)
+	{
+	  if(x < max)
+	    {
+	      x += speed;
+	    }
+	  else
+	    {
+	      animationState = 1;
+	    }
+	  
+	}
+      //move left
+      else if(animationState == 1)
+	{
+	  if(x > min)
+	    {
+	      x -= speed;
+	    }
+	  else
+	    {
+	      animationState = 0;
+	    }
+	}
+    }
+  else if(animation == 1)
+    {
+        //move up
+      if(animationState == 0)
+	{
+	  if(y < max)
+	    {
+	      y += speed;
+	    }
+	  else
+	    {
+	      animationState = 1;
+	    }
+	  
+	}
+      //move down
+      else if(animationState == 1)
+	{
+	  if(y > min)
+	    {
+	      y -= speed;
+	    }
+	  else
+	    {
+	      animationState = 0;
+	    }
+	}
+      
+    }
 }
   
 void Enemie::draw()
@@ -540,12 +628,15 @@ GameWindow::GameWindow()
   viw_x = 0;
   viw_y = 0;
   shotcount = 0;
+  deadcount = 0;
+
 
   running = true;
    
  
   
   heightStr = "";
+  deadStr = "";
   
 }
 
@@ -645,6 +736,7 @@ void GameWindow::drawHeight() {
   
   
   fontBig.draw(heightStr, 20, 20, 10);
+  fontBig.draw(deadStr, 20, 60, 10);
 }
 
   
@@ -698,6 +790,8 @@ void GameWindow::updateView()
 
    
   heightStr = "Entfernung: " + std::to_string(player.getY()) + "m";
+  
+  deadStr = "You killed " + std::to_string(deadcount) + " enemies";
 }
 
 void GameWindow::deleteEnemies()
@@ -716,7 +810,7 @@ void GameWindow::deleteEnemies()
     if((*it)->isDead())
     {
       //TODO: Enemie explode
-      //TODO: Count dead enemies --- for fun reason
+      deadcount++;
       delete (*it);  //Speiehcer freigeben
       enemies.erase(it);
       //std::cout << "Delete enemie" << std::endl;
@@ -892,6 +986,7 @@ void GameWindow::restart()
   player.setY(0);
   
   shotcount = 0;
+  deadcount = 0;
 
   running = true;
    
