@@ -895,6 +895,7 @@ void GameWindow::exploitKeys()
 	    }
      
 	}
+      
     }
   else{
     
